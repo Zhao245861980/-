@@ -20,13 +20,14 @@ def login(request):
         user, created = User.objects.get_or_create(phonenum=phonenum)
         # 记录登录状态
         request.session['uid'] = user.id
-        return render_json(user.to_dict(), 0)
+        return render_json(user.to_dict())
     else:
         return render_json(None, error.VCODE_ERROR)
 
 def get_profile(request):
     """获取个人资料"""
-    pass
+    user = request.user
+    return render_json(user.profile.to_dict())
 
 
 def modify_profile(request):
