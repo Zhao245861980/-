@@ -3,6 +3,8 @@ import datetime
 from django.db import models
 from django.utils.functional import cached_property
 
+from lib.orm import ModelMixin
+
 
 class User(models.Model):
     SEX = (
@@ -13,7 +15,6 @@ class User(models.Model):
     phonenum = models.CharField(max_length=16, unique=True)
 
     sex = models.CharField(max_length=8, choices=SEX)
-
     avatar = models.CharField(max_length=256)
     location = models.CharField(max_length=32)
     birth_year = models.IntegerField(default=2000)
@@ -24,7 +25,7 @@ class User(models.Model):
     def age(self):
         today = datetime.date.today()
         birth_date = datetime.date(self.birth_year, self.birth_month, self.birth_day)
-        times = (today - birth_date)
+        times = today - birth_date
         return times.days // 365
 
     @property
@@ -34,8 +35,19 @@ class User(models.Model):
             self._profile, _ = Profile.objects.get_or_create(id=self.id)
         return self._profile
 
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'nickname': self.nickname,
+            'phonenum': self.phonenum,
+            'sex': self.sex,
+            'avatar': self.avatar,
+            'location': self.location,
+            'age': self.age,
+        }
 
-class Profile(models.Model):
+
+class Profile(models.Model, ModelMixin):
     """用户配置项"""
 
     SEX = (
@@ -47,7 +59,7 @@ class Profile(models.Model):
     location = models.CharField(max_length=32, verbose_name='目标城市')
 
     min_distance = models.IntegerField(default=1, verbose_name='最小查找范围')
-    max_distance = models.IntegerField(default=1, verbose_name='最大查找范围')
+    max_distance = models.IntegerField(default=10, verbose_name='最大查找范围')
 
     min_dating_age = models.IntegerField(default=18, verbose_name='最小交友年龄')
     max_dating_age = models.IntegerField(default=45, verbose_name='最大交友年龄')
