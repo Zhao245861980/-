@@ -8,7 +8,17 @@ from common import error
 
 class AuthMiddleware(MiddlewareMixin):
     """用户登录中间件"""
+    WHITE_LIST = [
+        'api/user/verify',
+        'api/user/login',
+    ]
+
     def process_request(self, request):
+        # 如果请求的URL在白名单内，直接跳过检查
+        for path in self.WHITE_LIST:
+            if request.path.startswith(path):
+                return
+        # 进行登录检查
         uid = request.session.get('uid')
         if uid:
             try:
@@ -21,6 +31,7 @@ class AuthMiddleware(MiddlewareMixin):
 
 class CorMiddleware(MiddlewareMixin):
     """处理客 JS 户端的跨域"""
+
     def process_request(self, request):
         if request.method == 'OPTIONS' and 'HTTP_ACCESS_CONTROL_REQUEST_METHOD' in request.META:
             response = HttpResponse()

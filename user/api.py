@@ -1,7 +1,8 @@
 from lib.http import render_json
 from common import error
-from user.logic import send_verify_code, check_vcode
+from user.logic import send_verify_code, check_vcode, save_upload_file
 from user.models import User
+from user.forms import ProfileForm
 
 
 def get_verify_code(request):
@@ -24,6 +25,7 @@ def login(request):
     else:
         return render_json(None, error.VCODE_ERROR)
 
+
 def get_profile(request):
     """获取个人资料"""
     user = request.user
@@ -32,9 +34,26 @@ def get_profile(request):
 
 def modify_profile(request):
     """修改个人资料"""
-    pass
+    form = ProfileForm(request.POST)
+    if form.is_valid():
+        user = request.user
+        user.profile.__dict__.update(form.cleaned_data)
+        user.profile.save()
+        return render_json(None)
+    else:
+        return render_json(form.errors, error.PROFILE_ERROR)
+
+
+import logging
+
+log = logging.getLogger('inf')
 
 
 def upload_avatar(request):
     """头像上传"""
-    pass
+    file = request.FILES.get('avatar')
+    if file:
+        save_upload_file(request.user, file)
+        return render_json(None)
+    else:
+        return render_json(None, error.FILE_NOT_FOUND)
